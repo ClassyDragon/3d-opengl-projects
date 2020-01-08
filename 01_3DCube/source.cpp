@@ -166,6 +166,7 @@ int main() {
     glDepthFunc(GL_LESS);
 
     while (!glfwWindowShouldClose(window)) {
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         trans = glm::mat4(1.0f);
         trans = glm::rotate(trans, glm::radians(degrees[0]), glm::vec3(1.0f, 0.0f, 0.0f));
         trans = glm::rotate(trans, glm::radians(degrees[1]), glm::vec3(0.0f, 1.0f, 0.0f));
