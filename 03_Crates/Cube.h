@@ -18,6 +18,15 @@
 
 class Renderer;
 
+// Define Texture Mode
+// POSSIBLE VALUES:
+// Basic: All sides use the same texture
+// SodaCan: Sides use same texture, top and bottom have unique textures
+enum TextureMode {
+    BASIC,
+    SODACAN
+};
+
 /* 3D Cube Class */
 // A cube of specified size and with a given texture.
 // The cube can be copied to produce an identical cube with varying transformations.
@@ -30,7 +39,7 @@ class Cube {
         Texture* texture;
         BufferLayoutData* layout;
     public:
-        Cube(const float size, const std::string& textureFilename);
+        Cube(const float size, const std::string& textureFilename, const int textureMode);
         ~Cube();
 
         void Bind() const;
