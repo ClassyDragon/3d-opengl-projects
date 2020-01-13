@@ -48,6 +48,7 @@ int main() {
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    unsigned char inputMode = 0;
 
     PerspectiveCamera camera(0);
     glfwSetCursorPosCallback(window, mouseCallback);
@@ -151,6 +152,16 @@ int main() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+            if (inputMode == 0) {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                inputMode = 1;
+            }
+            else {
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                inputMode = 0;
+            }
+        }
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
