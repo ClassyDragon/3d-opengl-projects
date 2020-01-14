@@ -5,7 +5,7 @@ FLAGS = -Wall
 DIRS = -I./ -Ivendor/
 IMGUI = imgui_impl_opengl3.o imgui_impl_glfw.o imgui.o imgui_demo.o imgui_draw.o imgui_widgets.o
 API = VertexBuffer.o VertexArray.o BufferLayoutData.o IndexBuffer.o Shader.o Texture.o Renderer.o
-MODELS = Cube.o
+MODELS = Cube.o Model.o ModelLoader.o
 CAMERAS = PerspectiveCamera.o
 OBJS = GLCall.o stb_image.o $(API) $(IMGUI) $(MODELS) $(CAMERAS)
 
@@ -40,6 +40,12 @@ Cube.o: Cube.cpp Cube.h VertexBuffer.o Texture.o IndexBuffer.o VertexArray.o GLC
 	$(COMP) $< -c $(DIRS) $(FLAGS)
 
 PerspectiveCamera.o: PerspectiveCamera.cpp PerspectiveCamera.h GLCall.o
+	$(COMP) $< -c $(DIRS) $(FLAGS)
+
+Model.o: Model.cpp Model.h
+	$(COMP) $< -c $(DIRS) $(FLAGS)
+
+ModelLoader.o: ModelLoader.cpp ModelLoader.h
 	$(COMP) $< -c $(DIRS) $(FLAGS)
 
 stb_image.o: vendor/stb_image/stb_image.cpp vendor/stb_image/stb_image.h

@@ -26,6 +26,12 @@ void Renderer::Draw(const BatchCubes& batchCubes, Shader& shader) const {
     shader.Unbind();
 }
 
+void Renderer::Draw(const Model& model, Shader& shader) const {
+    model.Bind();
+    shader.Bind();
+    GLCall(glDrawElements(GL_TRIANGLES, model.ib->getCount(), GL_UNSIGNED_INT, 0));
+}
+
 void Renderer::Clear() const {
     GLCall(glClear(GL_COLOR_BUFFER_BIT));
 }

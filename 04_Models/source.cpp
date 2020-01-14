@@ -14,6 +14,7 @@
 #include "Renderer.h"
 
 #include "Cube.h"
+#include "Model.h"
 
 #include "PerspectiveCamera.h"
 
@@ -49,7 +50,7 @@ int main() {
     glfwSwapInterval(1);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    PerspectiveCamera camera(0);
+    PerspectiveCamera camera(1);
     glfwSetCursorPosCallback(window, mouseCallback);
 
     glewInit();
@@ -67,6 +68,8 @@ int main() {
     proj = perspectiveProjection;
     view = glm::lookAt(glm::vec3(0, 4, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
     model = glm::mat4(1.0f);
+
+    Model cubeModel("res/models/YoungLink.obj");
 
     float degrees[] = {
         0.0f, 0.0f, 0.0f
@@ -134,13 +137,15 @@ int main() {
         shader.Bind();
         shader.SetUniformMat4f("MVP", MVP);
 
-        renderer.Draw(bc, shader);
+//        renderer.Draw(bc, shader);
+        crate.Bind();
+        renderer.Draw(cubeModel, shader);
 
         crate.Bind();
         glm::mat4 trans2(1.0f);
         shader.Bind();
         shader.SetUniformMat4f("trans", trans2);
-        renderer.Draw(va, ib, shader);
+    //    renderer.Draw(va, ib, shader);
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
