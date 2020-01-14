@@ -1,7 +1,7 @@
 #include "Model.h"
 
 Model::Model(const std::string& modelFile) {
-    ModelLoader::LoadModel(modelFile, (int)FileType::OBJ, this);
+    this->isLoaded = ModelLoader::LoadModel(modelFile, (int)FileType::OBJ, this);
 }
 
 Model::~Model() {
@@ -19,4 +19,8 @@ void Model::Bind() const {
 void Model::Unbind() const {
     this->va->Unbind();
     this->ib->Unbind();
+}
+
+bool Model::Loaded() const {
+    return this->isLoaded;
 }

@@ -12,6 +12,7 @@ class Model {
         ~Model();
         void Bind() const;
         void Unbind() const;
+        bool Loaded() const;
     private:
         friend class ModelLoader;
         friend class Renderer;
@@ -19,4 +20,5 @@ class Model {
         VertexArray* va;
         BufferLayoutData* bld;
         IndexBuffer* ib;
+        bool isLoaded;
 };

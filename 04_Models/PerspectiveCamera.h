@@ -17,6 +17,7 @@ class PerspectiveCamera {
         void mouseCallback(GLFWwindow* window, double xpos, double ypos);
         void updateCamera(GLFWwindow* window, float deltaTime);
         glm::mat4 getLookAtMatrix();
+        void setPosition(const glm::vec3& position);
     private:
         glm::vec3 cameraPos, cameraFront, cameraUp;
         float yaw, pitch;
@@ -24,6 +25,8 @@ class PerspectiveCamera {
         float deltaTime, lastFrame;
         bool firstMouse;
         int mode;
+        bool wireframe;
+        bool spacePressed;
     public:
         static float sensitivity;
         static float mouseXPos;

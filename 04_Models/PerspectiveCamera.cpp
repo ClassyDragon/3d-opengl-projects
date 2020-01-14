@@ -8,7 +8,7 @@ PerspectiveCamera::PerspectiveCamera(const int cameraMode)
     : cameraPos(0.0f, 0.0f, 3.0f),
     cameraFront(0.0f, 0.0f, -1.0f),
     cameraUp(0.0f, 1.0f, 0.0f),
-    firstMouse(true)
+    firstMouse(true), wireframe(false), spacePressed(false), yaw(-90.0f)
 {
     mode = cameraMode;
 }
@@ -48,7 +48,7 @@ void PerspectiveCamera::mouseCallback(GLFWwindow* window, double xpos, double yp
 
 void PerspectiveCamera::updateCamera(GLFWwindow* window, float deltaTime) {
     // Keyboard input:
-    float cameraSpeed = 20.5f * deltaTime;
+    float cameraSpeed = 7.5f * deltaTime;
     if (mode == MovementMode::WALK) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             cameraPos += cameraSpeed * glm::vec3(cameraFront.x, 0.0f, cameraFront.z);
@@ -58,6 +58,20 @@ void PerspectiveCamera::updateCamera(GLFWwindow* window, float deltaTime) {
             cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
             cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !spacePressed) {
+            spacePressed = true;
+            if (!wireframe) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                wireframe = true;
+            }
+            else {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                wireframe = false;
+            }
+        }
+        else {
+            spacePressed = false;
+        }
         if (firstMouse) {
             lastX = mouseXPos;
             lastY = mouseYPos;
@@ -73,6 +87,20 @@ void PerspectiveCamera::updateCamera(GLFWwindow* window, float deltaTime) {
             cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
             cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !spacePressed) {
+            spacePressed = true;
+            if (!wireframe) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                wireframe = true;
+            }
+            else {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                wireframe = false;
+            }
+        }
+        else if (glfwGetKey(window, GLFW_KEY_SPACE) != GLFW_PRESS) {
+            spacePressed = false;
+        }
         if (firstMouse) {
             lastX = mouseXPos;
             lastY = mouseYPos;
@@ -104,5 +132,9 @@ void PerspectiveCamera::updateCamera(GLFWwindow* window, float deltaTime) {
 }
 
 glm::mat4 PerspectiveCamera::getLookAtMatrix() {
-    return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    return glm::lookAt(cameraPos, cameraPos + this->cameraFront, cameraUp);
+}
+
+void PerspectiveCamera::setPosition(const glm::vec3& position) {
+    cameraPos = position;
 }

@@ -38,8 +38,11 @@ struct Vertex {
     }
 };
 
-void ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* model) {
+bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* model) {
     std::ifstream file(modelFile);
+    if (!file.good()) {
+        return false;
+    }
     if (filetype == (int)FileType::OBJ) {
 
         std::vector<unsigned int> VertexIndices, TextureIndices, NormalIndices;
@@ -48,13 +51,19 @@ void ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
 
         std::string temp = "";
         while (file >> temp) {
-            if (temp.find("vt") != std::string::npos) {
+            if (temp.find("#") != std::string::npos || temp.find("o") != std::string::npos
+                    || temp.find("s") != std::string::npos 
+                    || temp.find("mtllib") != std::string::npos
+                    || temp.find("usemtl") != std::string::npos) {
+                file.ignore(256, '\n');
+            }
+            else if (temp.find("vt") != std::string::npos) {
                 // Read vertex texture coordinates
-                float xyz[2];
+                float xy[2];
                 for (int i = 0; i < 2; i++) {
-                    file >> xyz[i];
+                    file >> xy[i];
                 }
-                glm::vec2 texCoords(xyz[0], xyz[1]);
+                glm::vec2 texCoords(xy[0], xy[1]);
                 TextureCoordinates.push_back(texCoords);
             }
             else if (temp.find("vn") != std::string::npos) {
@@ -105,25 +114,19 @@ void ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
         //      
 
         // Convert the indices:
-        //std::map<Vector3f, int> indices;
         std::map<std::string, int> indices;
         unsigned int vertexNum = 0;
         for (int i = 0; i < VertexIndices.size(); i++) {
             std::string keyvalue = std::to_string(VertexIndices[i]) + " " + std::to_string(TextureIndices[i]) + " " + std::to_string(NormalIndices[i]);
-            //Vector3f vec{ VertexIndices[i], TextureIndices[i], NormalIndices[i] };
             if (indices.find(keyvalue) == indices.end()) {
-                //std::cout << "(" << vec.x << " " << vec.y << " " << vec.z << ")" << std::endl;
                 indices[keyvalue] = vertexNum;
                 vertexNum++;
-                //std::cout << vertexNum << std::endl;
             }
         }
         std::vector<unsigned int> ib;
         for (int i = 0; i < VertexIndices.size(); i++) {
-//            ib.push_back(indices[Vector3f(VertexIndices[i], TextureIndices[i], NormalIndices[i])]);
             ib.push_back(indices[std::to_string(VertexIndices[i]) + " " + std::to_string(TextureIndices[i]) + " " + std::to_string(NormalIndices[i])]);
         }
-        std::cout << "Size: " << ib.size() << std::endl;
 
         // Create float array with all combinations of vertex positions and tex coords:
         std::vector<Vertex> vertices;
@@ -151,32 +154,7 @@ void ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
             if (good) {
                 vertices.push_back(v);
             }
-            /*
-            vertices.push_back(VertexPositions[VertexIndices[i] - 1].x);
-            std::cout << "(" << VertexPositions[VertexIndices[i] - 1].x << ", ";
-            vertices.push_back(VertexPositions[VertexIndices[i] - 1].y);
-            std::cout << VertexPositions[VertexIndices[i] - 1].y << ", ";
-            vertices.push_back(VertexPositions[VertexIndices[i] - 1].z);
-            std::cout << VertexPositions[VertexIndices[i] - 1].z << ", ";
-            vertices.push_back(TextureCoordinates[TextureIndices[i] - 1].x);
-            std::cout << TextureCoordinates[TextureIndices[i] - 1].x << ", ";
-            vertices.push_back(TextureCoordinates[TextureIndices[i] - 1].y);
-            std::cout << TextureCoordinates[TextureIndices[i] - 1].y << ", ";
-            vertices.push_back(Normals[NormalIndices[i] - 1].x);
-            std::cout << Normals[NormalIndices[i] - 1].x << ", ";
-            vertices.push_back(Normals[NormalIndices[i] - 1].y);
-            std::cout << Normals[NormalIndices[i] - 1].y << ", ";
-            vertices.push_back(Normals[NormalIndices[i] - 1].z);
-            std::cout << Normals[NormalIndices[i] - 1].z << ")" << std::endl;
-            */
         }
-        std::cout << "Vertices Size: " << vertices.size() << std::endl;
-
-        /*
-        for (auto& i : ib) {
-            std::cout << i << std::endl;
-        }
-        */
 
         model->vb = new VertexBuffer(&vertices[0], vertices.size() * 8 * sizeof(float));
         model->ib = new IndexBuffer(&ib[0], ib.size());
@@ -187,5 +165,6 @@ void ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
         model->va = new VertexArray;
         model->va->Bind();
         model->va->AddBuffer(*model->vb, *model->bld);
+        return true;
     }
 }

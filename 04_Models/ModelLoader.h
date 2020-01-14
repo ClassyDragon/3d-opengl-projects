@@ -22,5 +22,5 @@ enum class FileType {
 
 class ModelLoader {
     public:
-        static void LoadModel(const std::string& modelFile, int filetype, Model* model);
+        static bool LoadModel(const std::string& modelFile, int filetype, Model* model);
 };

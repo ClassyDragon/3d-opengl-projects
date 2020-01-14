@@ -38,19 +38,28 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     PerspectiveCamera::mouseYPos = ypos;
 }
 
-int main() {
+int main(int argc, char** argv) {
+
+    if (argc < 2) {
+        std::cout << "[Error!] No model file specified!" << std::endl
+            << "\t  Usage: " << argv[0] << " [model filepath] [scale]" << std::endl
+            << "\tExample: " << argv[0] << " res/models/model.obj 0.75" << std::endl;
+        return 1;
+    }
+
     GLFWwindow* window;
 
     if (!glfwInit()) {
         return -1;
     }
 
-    window = glfwCreateWindow(screenWidth, screenHeight, "Crates", NULL, NULL);
+    window = glfwCreateWindow(screenWidth, screenHeight, argv[1], NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     PerspectiveCamera camera(1);
+    camera.setPosition(glm::vec3(0.0f, 5.5f, 10.0f));
     glfwSetCursorPosCallback(window, mouseCallback);
 
     glewInit();
@@ -70,60 +79,33 @@ int main() {
     proj = perspectiveProjection;
     view = glm::lookAt(glm::vec3(0, 4, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
     model = glm::mat4(1.0f);
+    float scale = 1.0f;
+    if (argc > 2) {
+        scale = std::stof(argv[2], nullptr);
+    }
+    model = glm::scale(model, glm::vec3(scale, scale, scale));
 
-    Model cubeModel("res/models/mask.obj");
-
-    float degrees[] = {
-        0.0f, 0.0f, 0.0f
-    };
-    float units[] = {
-        0.0f, 0.0f, 0.0f
-    };
-
-    Cube cube(1.0f, "res/textures/crate.png", 0);
-    BatchCubes bc(&cube);
-    bc.insertCube(glm::mat4(1.0));
-    glm::mat4 trans1(1.0);
-    trans1 = glm::translate(trans1, glm::vec3(2.2, 0.0, 0.0));
-    bc.insertCube(trans1);
-    glm::mat4 trans2(1.0);
-    trans2 = glm::translate(trans2, glm::vec3(1.0, 2.1, 0.0));
-    bc.insertCube(trans2);
-
-    float floorVertices[] = {
-        -20.0f, -1.0f, -20.0f, 0.0f, 0.0f,
-        -20.0f, -1.0f,  20.0f, 0.0f, 1.0f,
-         20.0f, -1.0f, -20.0f, 1.0f, 0.0f,
-         20.0f, -1.0f,  20.0f, 1.0f, 1.0f
-    };
-    unsigned int floorIndices[] = {
-        0, 1, 2,
-        1, 2, 3
-    };
-    VertexBuffer vb(floorVertices, 7 * 4 * sizeof(float));
-    IndexBuffer ib(floorIndices, 2 * 3);
-    BufferLayoutData bf;
-    bf.Insert<float>(3);
-    bf.Insert<float>(2);
-    VertexArray va;
-    va.Bind();
-    va.AddBuffer(vb, bf);
+    Model model3D(argv[1]);
+    if (!model3D.Loaded()) {
+        glfwTerminate();
+        return 1;
+    }
 
     Texture crate("res/textures/crate.png");
 
-    Shader shader("res/shaders/shader1.glsl");
+    Shader shader("res/shaders/blue_shader.glsl");
     shader.Bind();
     shader.SetUniform1i("u_Texture", 0);
-
-    Cube grassBlock(1.0f, "res/textures/grassTexture.png", 1);
 
     Renderer renderer;
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     while (!glfwWindowShouldClose(window)) {
+//        glm::mat4 translation(1.0f);
         renderer.Clear();
         glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -134,20 +116,21 @@ int main() {
         camera.updateCamera(window, deltaTime);
 
         view = camera.getLookAtMatrix();
+        model = glm::rotate(model, glm::radians(1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+//        model = glm::scale(model, glm::vec3(scale, scale, scale));
+//        model = glm::translate(translation, glm::vec3(1.0f, 0.0f, 50.0f));
         glm::mat4 MVP = proj * view * model;
 
         shader.Bind();
         shader.SetUniformMat4f("MVP", MVP);
 
-//        renderer.Draw(bc, shader);
         crate.Bind();
-        renderer.Draw(cubeModel, shader);
+        renderer.Draw(model3D, shader);
 
         crate.Bind();
         glm::mat4 trans2(1.0f);
         shader.Bind();
         shader.SetUniformMat4f("trans", trans2);
-    //    renderer.Draw(va, ib, shader);
 
         /*
         ImGui_ImplOpenGL3_NewFrame();
