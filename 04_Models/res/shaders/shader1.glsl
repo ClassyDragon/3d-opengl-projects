@@ -5,9 +5,10 @@ layout(location = 0) in vec4 position;
 layout(location = 1) in vec2 textureCoordinates;
 out vec2 v_TextureCoordinates;
 uniform mat4 MVP;
-uniform mat4 trans;
+//uniform mat4 trans;
 void main() {
-    gl_Position = MVP * trans * position;
+    //gl_Position = MVP * trans * position;
+    gl_Position = MVP * position;
     v_TextureCoordinates = textureCoordinates;
 }
 
