@@ -48,7 +48,7 @@ void PerspectiveCamera::mouseCallback(GLFWwindow* window, double xpos, double yp
 
 void PerspectiveCamera::updateCamera(GLFWwindow* window, float deltaTime) {
     // Keyboard input:
-    float cameraSpeed = 2.5f * deltaTime;
+    float cameraSpeed = 20.5f * deltaTime;
     if (mode == MovementMode::WALK) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
             cameraPos += cameraSpeed * glm::vec3(cameraFront.x, 0.0f, cameraFront.z);

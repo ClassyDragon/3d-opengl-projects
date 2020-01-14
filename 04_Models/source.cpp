@@ -55,21 +55,23 @@ int main() {
 
     glewInit();
 
+    /*
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init((char*)glGetString(GL_NUM_SHADING_LANGUAGE_VERSIONS));
+    */
 
     glm::mat4 proj, view, model;
     glm::mat4 trans(1.0f);
-    glm::mat4 perspectiveProjection = glm::perspective(glm::radians(40.0f), screenWidth / screenHeight, 0.1f, 100.f);
+    glm::mat4 perspectiveProjection = glm::perspective(glm::radians(70.0f), screenWidth / screenHeight, 0.1f, 1000.f);
     proj = perspectiveProjection;
     view = glm::lookAt(glm::vec3(0, 4, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
     model = glm::mat4(1.0f);
 
-    Model cubeModel("res/models/YoungLink.obj");
+    Model cubeModel("res/models/mask.obj");
 
     float degrees[] = {
         0.0f, 0.0f, 0.0f
@@ -147,6 +149,7 @@ int main() {
         shader.SetUniformMat4f("trans", trans2);
     //    renderer.Draw(va, ib, shader);
 
+        /*
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -155,6 +158,7 @@ int main() {
         ImGui::End();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        */
 
         glfwSwapBuffers(window);
         glfwPollEvents();
