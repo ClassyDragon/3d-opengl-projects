@@ -142,19 +142,38 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
         file.close();
 
         // At this point:
-        // VertexPositions contains vec3's with each vertex position
-        // TextureCoordinates contains vec2's with each texture coordinate
-        // Normals contains vec3's with each normal vector
-        // The indices vectors contain index data in the format:
-        //      
+        // meshIndices contains mesh data in <material name, indices> format.
+        // VertexPositions contains vec3's of all vertex positions.
+        // TextureCoordinates contains vec2's of all texture coordinates.
+        // Normals contains vec3's of all normal vectors.
 
         // Convert the indices:
         std::map<std::string, int> indices;
         unsigned int vertexNum = 0;
+        // Iterate through all indices and construct unique vertices for all of them.
         for (auto& mesh : meshIndices) {
             for (auto& index : mesh) {
-                if (indices.find(index) == indices.end()) {
+                if (indices.find(*index) == indices.end()) {
+                    // Deconstruct string in v/vt/vn format
+                    std::string vertexData = *index;
+                    for (auto& c : vertexData) {
+                        if (c == '/')
+                            c = ' ';
+                    }
+                    std::stringstream ss(vertexData);
+                    unsigned int vertexAttributes[3];
+                    for (int i = 0; i < 3; i++) {
+                        ss >> vertexAttributes[i];
+                    }
                     vertices.push_back(Vertex {
+                            VertexPositions[index - 1].x,
+                            VertexPositions[index - 1].y,
+                            VertexPositions[index - 1].z,
+                            TextureCoordinates[index - 1].x,
+                            TextureCoordinates[index - 1].y,
+                            Normals[index - 1].x,
+                            Normals[index - 1].y,
+                            Normals[index - 1].z
                             });
                     indices[index] = vertexNum;
                     vertexNum++;
