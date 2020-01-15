@@ -38,6 +38,10 @@ struct Vertex {
     }
 };
 
+struct TriangleIndex {
+    std::string i1, i2, i3;
+}
+
 bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* model) {
     std::ifstream file(modelFile);
     if (!file.good()) {
@@ -45,15 +49,17 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
     }
     if (filetype == (int)FileType::OBJ) {
 
-        std::vector<unsigned int> VertexIndices, TextureIndices, NormalIndices;
+        //std::vector<unsigned int> VertexIndices, TextureIndices, NormalIndices;
         std::vector<glm::vec3> VertexPositions, Normals;
         std::vector<glm::vec2> TextureCoordinates;
         std::map<std::string, Material> materials;
+        std::map<std::string, Vertex> vertices;
+        std::unordered_map<std::string, std::vector<TriangleIndex>> meshIndices;
 
         std::string temp = "";
         while (file >> temp) {
             if (
-                    temp == "#" 
+                       temp == "#" 
                     || temp == "o"
                     || temp == "s" 
                     || temp == "g"
@@ -84,7 +90,26 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
                 mtfile.close();
             }
             else if (temp.find("usemtl") != std::string::npos) {
-                file >> temp;
+                // Create new mesh using specified material
+                std::string matName;
+                file >> matName;
+                std::vector<TriangleIndex> triIndices;
+                while (file >> temp) {
+                    if (temp.find("usemtl") != std::string::npos) {
+                        for (int i = 5; i >= 0; i++) {
+                            ifstream.putback(temp[i]);
+                        }
+                        break;
+                    }
+                    else if (temp == "f") {
+                        TriangleIndex t;
+                        file >> t.i1;
+                        file >> t.i2;
+                        file >> t.i3;
+                        triIndices.push_back(t);
+                    }
+                }
+                meshIndices.insert(matName, triIndices);
             }
             else if (temp.find("vt") != std::string::npos) {
                 // Read vertex texture coordinates
@@ -113,25 +138,6 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
                 glm::vec3 vertex(xyz[0], xyz[1], xyz[2]);
                 VertexPositions.push_back(vertex);
             }
-            else if (temp.find("f") != std::string::npos) {
-                // Read triangle indices
-                for (int i = 0; i < 3; i++) {
-                    file >> temp;
-                    for (auto& c : temp) {
-                        if (c == '/') {
-                            c = ' ';
-                        }
-                    }
-                    unsigned int ptn[3];
-                    std::stringstream ss(temp);
-                    for (int j = 0; j < 3; j++) {
-                        ss >> ptn[j];
-                    }
-                    VertexIndices.push_back(ptn[0]);
-                    TextureIndices.push_back(ptn[1]);
-                    NormalIndices.push_back(ptn[2]);
-                }
-            }
         }
         file.close();
 
@@ -145,6 +151,16 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
         // Convert the indices:
         std::map<std::string, int> indices;
         unsigned int vertexNum = 0;
+        for (auto& mesh : meshIndices) {
+            for (auto& index : mesh) {
+                if (indices.find(index) == indices.end()) {
+                    vertices.push_back(Vertex {
+                            });
+                    indices[index] = vertexNum;
+                    vertexNum++;
+                }
+            }
+        }
         for (int i = 0; i < VertexIndices.size(); i++) {
             std::string keyvalue = std::to_string(VertexIndices[i]) + " " + std::to_string(TextureIndices[i]) + " " + std::to_string(NormalIndices[i]);
             if (indices.find(keyvalue) == indices.end()) {
