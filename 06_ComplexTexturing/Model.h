@@ -16,7 +16,7 @@ class Model {
         void Bind() const;
         void Unbind() const;
         bool Loaded() const;
-        std::vector<Mesh>& GetMeshes();
+        std::vector<Mesh>* GetMeshes();
         std::vector<Mesh> meshes;
     private:
         friend class ModelLoader;

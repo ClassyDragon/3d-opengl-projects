@@ -8,6 +8,8 @@
 #include "stb_image/stb_image.h"
 
 class Texture {
+    public:
+        std::string filename;
     private:
         unsigned int ID;
         unsigned char* data;

@@ -6,8 +6,7 @@ class Material {
     public:
         Material() {}
         Material(const std::string& textureFile);
-        void Bind() const {
-            texture->Bind();
-        }
+        ~Material();
+        void Bind() const;
         Texture* texture;
 };

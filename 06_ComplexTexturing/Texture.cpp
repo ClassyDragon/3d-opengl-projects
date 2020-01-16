@@ -1,7 +1,7 @@
 #include "Texture.h"
 
 Texture::Texture(const std::string& filename)
-    : ID(0), textureWidth(0), textureHeight(0), bytesPerPixel(0)
+    : ID(0), textureWidth(0), textureHeight(0), bytesPerPixel(0), filename(filename)
 {
     stbi_set_flip_vertically_on_load(1);
 

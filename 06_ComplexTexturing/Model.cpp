@@ -31,6 +31,6 @@ bool Model::Loaded() const {
     return this->isLoaded;
 }
 
-std::vector<Mesh>& Model::GetMeshes() {
-    return this->meshes;
+std::vector<Mesh>* Model::GetMeshes() {
+    return &this->meshes;
 }

@@ -12,12 +12,9 @@ Mesh::~Mesh() {
 }
 
 void Mesh::Bind() const {
-    std::cout << "Bind va" << std::endl;
-    va->Bind();
-    std::cout << "Bind ib" << std::endl;
-    ib->Bind();
-    std::cout << "Bind material" << std::endl;
     material->Bind();
+    va->Bind();
+    ib->Bind();
 }
 
 void Mesh::Unbind() const {
@@ -43,5 +40,5 @@ void Mesh::Delete() {
     delete va;
     delete bld;
     delete ib;
-    delete material;
+//    delete material;
 }
