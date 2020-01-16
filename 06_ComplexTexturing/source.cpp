@@ -40,7 +40,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 
 int main(int argc, char** argv) {
 
-    if (argc < 3) {
+    if (argc < 2) {
         std::cout << "[Error!] No model file specified!" << std::endl
             << "\t  Usage: " << argv[0] << " [model filepath] [scale]" << std::endl
             << "\tExample: " << argv[0] << " res/models/model.obj 0.75" << std::endl;
@@ -81,12 +81,12 @@ int main(int argc, char** argv) {
     model = glm::mat4(1.0f);
 
     float scale = 1.0f;
-    if (argc > 3) {
-        scale = std::stof(argv[3], nullptr);
+    if (argc > 2) {
+        scale = std::stof(argv[2], nullptr);
     }
     model = glm::scale(model, glm::vec3(scale, scale, scale));
 
-    Model model3D(argv[1], argv[2]);
+    Model model3D(argv[1]);
     if (!model3D.Loaded()) {
         glfwTerminate();
         return 1;

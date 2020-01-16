@@ -39,12 +39,20 @@ struct Vertex {
 };
 
 struct TriangleIndex {
-    std::string i1, i2, i3;
-}
+//    std::string i1, i2, i3;
+//    std::vector<std::string*> indices;
+//    TriangleIndex() {
+//        indices.push_back(&i1);
+//        indices.push_back(&i2);
+//        indices.push_back(&i3);
+//    }
+    std::string indices[3];
+};
 
 bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* model) {
     std::ifstream file(modelFile);
     if (!file.good()) {
+        std::cout << "Couldn't load obj file" << std::endl;
         return false;
     }
     if (filetype == (int)FileType::OBJ) {
@@ -53,7 +61,7 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
         std::vector<glm::vec3> VertexPositions, Normals;
         std::vector<glm::vec2> TextureCoordinates;
         std::map<std::string, Material> materials;
-        std::map<std::string, Vertex> vertices;
+        std::vector<Vertex> vertices;
         std::unordered_map<std::string, std::vector<TriangleIndex>> meshIndices;
 
         std::string temp = "";
@@ -68,9 +76,14 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
                 file.ignore(256, '\n');
             }
             else if (temp.find("mtllib") != std::string::npos) {
+                std::cout << "Mat lib" << std::endl;
                 std::string materialFile;
-                temp >> materialFile;
-                ifstream mtfile("res/materials/" + materialFile);
+                file >> materialFile;
+                std::ifstream mtfile("res/materials/" + materialFile);
+                if (!mtfile.good()) {
+                    std::cout << "Failed to open material file." << std::endl;
+                    return false;
+                }
                 while (mtfile >> temp) {
                     if (temp.find("newmtl") == std::string::npos) {
                         mtfile.ignore(256, '\n');
@@ -78,38 +91,50 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
                     else {
                         std::string materialName;
                         mtfile >> materialName;
-                        if (temp.find("map_Kd") == std::string::npos) {
-                            mtfile.ignore(256, '\n');
-                        }
-                        else {
-                            mtfile >> temp;
-                            materials.insert(materialName, Material("res/textures/" + temp));
+                        std::cout << materialName << std::endl;
+                        while (mtfile >> temp) {
+                            if (temp.find("newmtl") != std::string::npos) {
+                            }
+                            else if (temp.find("map_Kd") != std::string::npos) {
+                                mtfile >> temp;
+                                std::cout << temp << std::endl;
+                                Material mat("res/textures/" + temp);
+                                materials.insert(std::pair<std::string, Material>(materialName, mat));
+                                break;
+                            }
+                            else {
+                                mtfile.ignore(256, '\n');
+                            }
                         }
                     }
                 }
                 mtfile.close();
+                for (auto& mat : materials) {
+                    std::cout << "Materials read: " << mat.first << std::endl;
+                }
             }
             else if (temp.find("usemtl") != std::string::npos) {
+                std::cout << "usemtl" << std::endl;
                 // Create new mesh using specified material
                 std::string matName;
                 file >> matName;
                 std::vector<TriangleIndex> triIndices;
                 while (file >> temp) {
                     if (temp.find("usemtl") != std::string::npos) {
-                        for (int i = 5; i >= 0; i++) {
-                            ifstream.putback(temp[i]);
+                        for (int i = 0; i < 6; i++) {
+                            file.putback(temp[i]);
                         }
                         break;
                     }
                     else if (temp == "f") {
                         TriangleIndex t;
-                        file >> t.i1;
-                        file >> t.i2;
-                        file >> t.i3;
+                        file >> t.indices[0];
+                        file >> t.indices[1];
+                        file >> t.indices[2];
                         triIndices.push_back(t);
                     }
                 }
-                meshIndices.insert(matName, triIndices);
+                meshIndices.insert(std::pair<std::string, std::vector<TriangleIndex>>(matName, triIndices));
             }
             else if (temp.find("vt") != std::string::npos) {
                 // Read vertex texture coordinates
@@ -140,6 +165,7 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
             }
         }
         file.close();
+        std::cout << "File read" << std::endl;
 
         // At this point:
         // meshIndices contains mesh data in <material name, indices> format.
@@ -151,84 +177,84 @@ bool ModelLoader::LoadModel(const std::string& modelFile, int filetype, Model* m
         std::map<std::string, int> indices;
         unsigned int vertexNum = 0;
         // Iterate through all indices and construct unique vertices for all of them.
-        for (auto& mesh : meshIndices) {
-            for (auto& index : mesh) {
-                if (indices.find(*index) == indices.end()) {
-                    // Deconstruct string in v/vt/vn format
-                    std::string vertexData = *index;
-                    for (auto& c : vertexData) {
-                        if (c == '/')
-                            c = ' ';
+        /*
+            std::unordered_map<std::string, std::vector<TriangleIndex>> meshIndices;
+        */
+        for (auto& mesh : meshIndices) { // for each vector in map
+            // New mesh to be added to the model:
+            Mesh m;
+            std::cout << "New mesh thing" << std::endl;
+
+            // Indices converted from v/vt/vn to i format
+            std::vector<unsigned int> meshConvertedIndices;
+
+            for (auto& triangle : mesh.second) { // for each TriangleIndex(string, string, string) in vector
+                for (auto& index : triangle.indices) { // for each std::string in TriangleIndex
+                    if (indices.find(index) == indices.end()) {
+                        // Deconstruct string in v/vt/vn format
+                        std::string vertexData = index;
+                        for (auto& c : vertexData) {
+                            if (c == '/')
+                                c = ' ';
+                        }
+
+                        // Create vertex using converted string
+                        std::stringstream ss(vertexData);
+                        unsigned int vertexAttributes[3];
+                        for (int i = 0; i < 3; i++) {
+                            ss >> vertexAttributes[i];
+                        }
+                        vertices.push_back(Vertex {
+                                VertexPositions[vertexAttributes[0] - 1].x,
+                                VertexPositions[vertexAttributes[0] - 1].y,
+                                VertexPositions[vertexAttributes[0] - 1].z,
+                                TextureCoordinates[vertexAttributes[1] - 1].x,
+                                TextureCoordinates[vertexAttributes[1] - 1].y,
+                                Normals[vertexAttributes[2] - 1].x,
+                                Normals[vertexAttributes[2] - 1].y,
+                                Normals[vertexAttributes[2] - 1].z
+                                });
+                        std::cout << "New Vertex Created" << std::endl;
+
+                        // Create unique index in map
+                        // Example: indices<"1/1/1", 5>
+                        indices[index] = vertexNum;
+                        vertexNum++;
                     }
-                    std::stringstream ss(vertexData);
-                    unsigned int vertexAttributes[3];
-                    for (int i = 0; i < 3; i++) {
-                        ss >> vertexAttributes[i];
-                    }
-                    vertices.push_back(Vertex {
-                            VertexPositions[index - 1].x,
-                            VertexPositions[index - 1].y,
-                            VertexPositions[index - 1].z,
-                            TextureCoordinates[index - 1].x,
-                            TextureCoordinates[index - 1].y,
-                            Normals[index - 1].x,
-                            Normals[index - 1].y,
-                            Normals[index - 1].z
-                            });
-                    indices[index] = vertexNum;
-                    vertexNum++;
+                    meshConvertedIndices.push_back(indices[index]);
                 }
             }
+            // meshConvertedIndices example:
+            // { 
+            //      0, 1, 2,
+            //      3, 4, 5
+            // }
+            std::cout << "New mesh: " << mesh.first << std::endl;
+            m.SetMaterial(&materials[mesh.first]);
+            IndexBuffer* ib = new IndexBuffer(&meshConvertedIndices[0], meshConvertedIndices.size());
+            m.SetIndexBuffer(ib);
+            model->meshes.push_back(m);
+            std::cout << "Mesh created" << std::endl;
         }
-        for (int i = 0; i < VertexIndices.size(); i++) {
-            std::string keyvalue = std::to_string(VertexIndices[i]) + " " + std::to_string(TextureIndices[i]) + " " + std::to_string(NormalIndices[i]);
-            if (indices.find(keyvalue) == indices.end()) {
-                indices[keyvalue] = vertexNum;
-                vertexNum++;
-            }
-        }
-        std::vector<unsigned int> ib;
-        for (int i = 0; i < VertexIndices.size(); i++) {
-            ib.push_back(indices[std::to_string(VertexIndices[i]) + " " + std::to_string(TextureIndices[i]) + " " + std::to_string(NormalIndices[i])]);
+        std::cout << "All vertices loaded" << std::endl;
+
+        VertexBuffer* vb = new VertexBuffer(&vertices[0], vertices.size() * sizeof(float));
+
+        // Set completed VertexBuffer to all meshes:
+        for (auto& mesh : model->meshes) {
+            mesh.SetVertexBuffer(vb);
+            mesh.ConstructVertexArray();
         }
 
-        // Create float array with all combinations of vertex positions and tex coords:
-        std::vector<Vertex> vertices;
-        /* {
-         *      v.x, v.y, v.z, t.w, t.h
-         * }
-         */
-
-        for (int i = 0; i < VertexIndices.size(); i++) {
-            Vertex v{
-                VertexPositions[VertexIndices[i] - 1].x,
-                VertexPositions[VertexIndices[i] - 1].y,
-                VertexPositions[VertexIndices[i] - 1].z,
-                TextureCoordinates[TextureIndices[i] - 1].x,
-                TextureCoordinates[TextureIndices[i] - 1].y,
-                Normals[NormalIndices[i] - 1].x,
-                Normals[NormalIndices[i] - 1].y,
-                Normals[NormalIndices[i] - 1].z
-            };
-            bool good = true;
-            for (auto& q : vertices) {
-                if (q == v)
-                    good = false;
-            }
-            if (good) {
-                vertices.push_back(v);
-            }
+        // Debugging stuff:
+        for (auto& mat : materials) {
+            std::cout << mat.first << std::endl;
         }
 
-        model->vb = new VertexBuffer(&vertices[0], vertices.size() * 8 * sizeof(float));
-        model->ib = new IndexBuffer(&ib[0], ib.size());
-        model->bld = new BufferLayoutData;
-        model->bld->Insert<float>(3); // positions
-        model->bld->Insert<float>(2); // tex coords
-        model->bld->Insert<float>(3); // normals
-        model->va = new VertexArray;
-        model->va->Bind();
-        model->va->AddBuffer(*model->vb, *model->bld);
+        std::cout << "Loaded" << std::endl;
+
         return true;
     }
+    std::cout << "false" << std::endl;
+    return false;
 }

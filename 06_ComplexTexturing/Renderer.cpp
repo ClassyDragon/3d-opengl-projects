@@ -26,10 +26,15 @@ void Renderer::Draw(const BatchCubes& batchCubes, Shader& shader) const {
     shader.Unbind();
 }
 
-void Renderer::Draw(const Model& model, Shader& shader) const {
-    model.Bind();
+void Renderer::Draw(Model& model, Shader& shader) {
+    std::vector<Mesh> meshes = model.GetMeshes();
     shader.Bind();
-    GLCall(glDrawElements(GL_TRIANGLES, model.ib->getCount(), GL_UNSIGNED_INT, 0));
+    for (auto& mesh : meshes) {
+        std::cout << "Bind mesh" << std::endl;
+        mesh.Bind();
+        std::cout << "Mesh bound" << std::endl;
+        GLCall(glDrawElements(GL_TRIANGLES, mesh.ib->getCount(), GL_UNSIGNED_INT, 0));
+    }
 }
 
 void Renderer::Clear() const {

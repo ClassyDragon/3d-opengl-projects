@@ -17,10 +17,12 @@ class Mesh {
         void SetMaterial(Material* material);
         void SetVertexBuffer(VertexBuffer* vb);
         void SetIndexBuffer(IndexBuffer* ib);
+        void Delete();
+        void ConstructVertexArray();
+        IndexBuffer* ib;
     private:
         VertexBuffer* vb;
         VertexArray* va;
         BufferLayoutData* bld;
-        IndexBuffer* ib;
         Material* material;
-}
+};
