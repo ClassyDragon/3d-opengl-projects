@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     window = glfwCreateWindow(screenWidth, screenHeight, argv[1], NULL, NULL);
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     PerspectiveCamera camera(1);
     camera.setPosition(glm::vec3(0.0f, 5.5f, 10.0f));
@@ -103,6 +103,8 @@ int main(int argc, char** argv) {
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
     while (!glfwWindowShouldClose(window)) {
